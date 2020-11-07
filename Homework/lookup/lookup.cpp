@@ -1,7 +1,10 @@
 #include "router.h"
 #include <stdint.h>
 #include <stdlib.h>
-
+#include <iostream>
+#include <vector>
+#include <arpa/inet.h>
+std::vector<RoutingTableEntry> lineartable;
 /**
  * @brief 插入/删除一条路由表表项
  * @param insert 如果要插入则为 true ，要删除则为 false
@@ -11,6 +14,24 @@
  * 删除时按照 addr 和 len **精确** 匹配。
  */
 void update(bool insert, RoutingTableEntry entry) {
+  if(insert){
+    bool exist=false;
+    for(int i=0;i<lineartable.size();i++){
+      if(lineartable[i].addr==entry.addr&&lineartable[i].len==entry.len){
+        lineartable[i]=entry;
+        exist=true;
+      }
+    }
+    if(!exist)
+      lineartable.push_back(entry);
+  }else{
+    for(int i=0;i<lineartable.size();i++){
+      if(lineartable[i].addr==entry.addr&&lineartable[i].len==entry.len){
+        lineartable.erase(lineartable.begin()+i);
+        break;
+      }
+    }
+  }
   // TODO:
 }
 
@@ -25,5 +46,22 @@ bool prefix_query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index) {
   // TODO:
   *nexthop = 0;
   *if_index = 0;
+  RoutingTableEntry* temp=NULL;
+  int templen=0;
+  for(int i=0;i<lineartable.size();i++){
+    if(lineartable[i].len==0&&lineartable[i].len>=templen){
+      templen=lineartable[i].len;
+      temp=&lineartable[i];
+    }
+    else if(ntohl(lineartable[i].addr)>>(32-lineartable[i].len)==ntohl(addr)>>(32-lineartable[i].len)&&lineartable[i].len>=templen){
+      templen=lineartable[i].len;
+      temp=&lineartable[i];
+    }
+  }
+  if(temp!=NULL){
+    *nexthop=temp->nexthop;
+    *if_index=temp->if_index;
+    return true;
+  }
   return false;
 }
