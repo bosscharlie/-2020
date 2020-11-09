@@ -1,9 +1,7 @@
 #include "rip.h"
 #include <stdint.h>
 #include <stdlib.h>
-#include<iostream>
 #include <arpa/inet.h>
-using namespace std;
 /*
   在头文件 rip.h 中定义了结构体 `RipEntry` 和 `RipPacket` 。
   你需要从 IPv4 包中解析出 RipPacket 结构体，也要从 RipPacket 结构体构造出对应的
@@ -53,14 +51,16 @@ bool disassemble(const uint8_t *packet, uint32_t len, RipPacket *output) {
   int count=0;
   for(int i=32;i<(int)len;i=i+20){
     output->entries[count].addr=htonl((((uint32_t)packet[i+4])<<24)+(((uint32_t)packet[i+5])<<16)+(((uint32_t)packet[i+6])<<8)+(((uint32_t)packet[i+7])));
-    //printf("%x\n",(output->entries[count].addr));
-    //printf("%x\n",((uint8_t*)&output->entries[count].addr)[3]);
-    //printf("%x\n",((uint8_t)output->entries[count].addr));
-    //printf("%x\n",((uint8_t)output->entries[count].addr));
     output->entries[count].mask=htonl((((uint32_t)packet[i+8])<<24)+(((uint32_t)packet[i+9])<<16)+(((uint32_t)packet[i+10])<<8)+(((uint32_t)packet[i+11])));
     output->entries[count].nexthop=htonl((((uint32_t)packet[i+12])<<24)+(((uint32_t)packet[i+13])<<16)+(((uint32_t)packet[i+14])<<8)+(((uint32_t)packet[i+15])));
-    //TODO judge nextmask
     uint32_t metric=(((uint32_t)packet[i+16])<<24)+(((uint32_t)packet[i+17])<<16)+(((uint32_t)packet[i+18])<<8)+(((uint32_t)packet[i+19]));
+    bool judge=false;
+    for(int i=0;i<32;i++){
+      if(((((output->entries[count].mask)>>i)&1)==0)&&!judge)
+        judge=true;
+      else if(((((output->entries[count].mask)>>i)&1)==1)&&judge)
+        return false;
+    }
     if((int)metric<1||(int)metric>16)
       return false;
     output->entries[count].metric=htonl(metric);
