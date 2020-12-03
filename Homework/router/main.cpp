@@ -120,7 +120,8 @@ int main(int argc, char *argv[]) {
     }
     in_addr_t src_addr, dst_addr;
     // TODO: extract src_addr and dst_addr from packet (big endian)
-
+    src_addr=(((uint32_t)packet[12])<<24)+(((uint32_t)packet[13])<<16)+(((uint32_t)packet[14])<<8)+(((uint32_t)packet[15]));
+    dst_addr=(((uint32_t)packet[16])<<24)+(((uint32_t)packet[17])<<16)+(((uint32_t)packet[18])<<8)+(((uint32_t)packet[19]));
     // 2. check whether dst is me
     bool dst_is_me = false;
     for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
@@ -150,7 +151,13 @@ int main(int argc, char *argv[]) {
           ip_header->ip_hl = 5;
           ip_header->ip_v = 4;
           // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17(udp), dst and src
-
+          ip_header->ip_tos=0;
+          ip_header->ip_id=0;
+          ip_header->ip_off=0;
+          ip_header->ip_ttl=1;
+          ip_header->ip_p=17;
+          ip_header->ip_dst=;
+          ip_header->ip_src=;
           // fill UDP headers
           struct udphdr *udpHeader = (struct udphdr *)&output[20];
           // src port = 520
