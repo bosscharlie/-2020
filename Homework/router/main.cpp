@@ -104,11 +104,7 @@ int main(int argc, char *argv[]) {
   fflush(stdout);
   uint64_t last_time = 0;
   while (1) {
-    printf("start while\n");
-    fflush(stdout);
     uint64_t time = HAL_GetTicks();
-    printf("end getticks\n");
-    fflush(stdout);
     // the RFC says 30s interval,
     // but for faster convergence, use 5s here
     if (time > last_time + 5 * 1000) {
@@ -196,6 +192,8 @@ int main(int argc, char *argv[]) {
       }
       last_time = time;
     }
+    printf("end timer");
+    fflush(stdout);
     int mask = (1 << N_IFACE_ON_BOARD) - 1;
     macaddr_t src_mac;
     macaddr_t dst_mac;
