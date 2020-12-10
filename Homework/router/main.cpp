@@ -145,18 +145,18 @@ int main(int argc, char *argv[]) {
           fflush(stdout);
           resp.numEntries=resp.numEntries+htonl(1);
           count++;
-          // // fill IP headers
+          // fill IP headers
           struct ip *ip_header = (struct ip *)output;
           ip_header->ip_hl = htonl(5);
           ip_header->ip_v = htonl(4);
-          // // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17(udp), dst and src
-          // ip_header->ip_tos=0;
-          // ip_header->ip_id=0;
-          // ip_header->ip_off=0;
-          // ip_header->ip_ttl=1;
-          // ip_header->ip_p=17;
-          // ip_header->ip_dst.s_addr=htonl((in_addr_t)((224<<24)+9));
-          // ip_header->ip_src.s_addr=htonl(addrs[i]);
+          // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17(udp), dst and src
+          ip_header->ip_tos=0;
+          ip_header->ip_id=0;
+          ip_header->ip_off=0;
+          ip_header->ip_ttl=1;
+          ip_header->ip_p=17;
+          ip_header->ip_dst.s_addr=htonl((in_addr_t)((224<<24)+9));
+          ip_header->ip_src.s_addr=htonl(addrs[i]);
           // // fill UDP headers
           // struct udphdr *udpHeader = (struct udphdr *)&output[20];
           // // src port = 520
