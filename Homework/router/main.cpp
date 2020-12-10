@@ -105,6 +105,8 @@ int main(int argc, char *argv[]) {
   uint64_t last_time = 0;
   while (1) {
     uint64_t time = HAL_GetTicks();
+    std::cout<<time<<std::endl;
+    fflush(stdout);
     // the RFC says 30s interval,
     // but for faster convergence, use 5s here
     if (time > last_time + 5 * 1000) {
@@ -137,6 +139,8 @@ int main(int argc, char *argv[]) {
             .nexthop=lineartable[i].nexthop,
             .metric=lineartable[i].metric
           };
+          printf("%x\n",resp.entries[i%25].addr);
+          fflush(stdout);
           resp.numEntries=resp.numEntries+htonl(1);
           count++;
           // fill IP headers
