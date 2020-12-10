@@ -157,14 +157,14 @@ int main(int argc, char *argv[]) {
           ip_header->ip_p=17;
           ip_header->ip_dst.s_addr=htonl((in_addr_t)((224<<24)+9));
           ip_header->ip_src.s_addr=htonl(addrs[i]);
-          // // fill UDP headers
-          // struct udphdr *udpHeader = (struct udphdr *)&output[20];
-          // // src port = 520
-          // udpHeader->uh_sport = htons(520);
-          // // dst port = 520
-          // udpHeader->uh_dport = htons(520);
-          // // TODO: udp length
-          // udpHeader->len = htons((uint16_t)32);
+          // fill UDP headers
+          struct udphdr *udpHeader = (struct udphdr *)&output[20];
+          // src port = 520
+          udpHeader->uh_sport = htons(520);
+          // dst port = 520
+          udpHeader->uh_dport = htons(520);
+          // TODO: udp length
+          udpHeader->len = htons((uint16_t)32);
           // // assemble RIP
           // rip_len = assemble(&resp, &output[20 + 8]);
 
