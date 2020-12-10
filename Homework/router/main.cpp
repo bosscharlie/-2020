@@ -100,15 +100,15 @@ int main(int argc, char *argv[]) {
     };
     update(true, entry);
   }
-  for(int i=0;i<lineartable.size();i++){
-    printf("%x\n",lineartable[i].addr);
-    fflush(stdout);
-  }
   printf("start\n");
   fflush(stdout);
   uint64_t last_time = 0;
   while (1) {
+    printf("start while\n");
+    fflush(stdout);
     uint64_t time = HAL_GetTicks();
+    printf("end getticks\n");
+    fflush(stdout);
     // the RFC says 30s interval,
     // but for faster convergence, use 5s here
     if (time > last_time + 5 * 1000) {
@@ -196,13 +196,14 @@ int main(int argc, char *argv[]) {
       }
       last_time = time;
     }
-
     int mask = (1 << N_IFACE_ON_BOARD) - 1;
     macaddr_t src_mac;
     macaddr_t dst_mac;
     int if_index;
     res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), src_mac, dst_mac,
                               1000, &if_index);
+    printf("receive success");
+    fflush(stdout);
     if (res == HAL_ERR_EOF) {
       break;
     } else if (res < 0) {
