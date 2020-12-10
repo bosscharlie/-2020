@@ -143,12 +143,12 @@ int main(int argc, char *argv[]) {
           };
           printf("%x\n",resp.entries[i%25].addr);
           fflush(stdout);
-          // resp.numEntries=resp.numEntries+htonl(1);
-          // count++;
+          resp.numEntries=resp.numEntries+htonl(1);
+          count++;
           // // fill IP headers
-          // struct ip *ip_header = (struct ip *)output;
-          // ip_header->ip_hl = htonl(5);
-          // ip_header->ip_v = htonl(4);
+          struct ip *ip_header = (struct ip *)output;
+          ip_header->ip_hl = htonl(5);
+          ip_header->ip_v = htonl(4);
           // // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17(udp), dst and src
           // ip_header->ip_tos=0;
           // ip_header->ip_id=0;
