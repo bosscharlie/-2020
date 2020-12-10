@@ -100,7 +100,11 @@ int main(int argc, char *argv[]) {
     };
     update(true, entry);
   }
-  printf("start");
+  for(int i=0;i<lineartable.size();i++){
+    printf("%x\n",lineartable[i].addr);
+    fflush(stdout);
+  }
+  printf("start\n");
   fflush(stdout);
   uint64_t last_time = 0;
   while (1) {
@@ -234,7 +238,7 @@ int main(int argc, char *argv[]) {
 
     if (dst_is_me) {
       // 3a.1
-      printf("dst is me");
+      printf("dst is me\n");
       fflush(stdout);
       RipPacket rip;
       // check and validate
@@ -310,7 +314,7 @@ int main(int argc, char *argv[]) {
           if(count!=0)
             HAL_SendIPPacket(if_index, output, rip_len + 20 + 8, src_mac);
         } else {
-          printf("response rip");
+          printf("response rip\n");
           fflush(stdout);
           // 3a.2 response, ref. RFC 2453 Section 3.9.2
           // TODO: update routing table
@@ -346,7 +350,7 @@ int main(int argc, char *argv[]) {
           }
         }
       } else {
-        printf("not rip packet");
+        printf("not rip packet\n");
         fflush(stdout);
         // not a rip packet
         // handle icmp echo request packet
@@ -363,7 +367,7 @@ int main(int argc, char *argv[]) {
           // 4. re-calculate icmp checksum and ip checksum
           // 5. send icmp packet
           if(icmp_header->type==8){
-            printf("icmp");
+            printf("icmp\n");
             fflush(stdout);
             ip_header=(struct ip *)output;
             icmp_header=(struct icmphdr *)&output[20];
@@ -402,7 +406,7 @@ int main(int argc, char *argv[]) {
         }
       }
     } else {
-      printf("dst is not me");
+      printf("dst is not me\n");
       fflush(stdout);
       // 3b.1 dst is not me
       // check ttl
@@ -463,7 +467,7 @@ int main(int argc, char *argv[]) {
         // TODO: send icmp packet
         HAL_SendIPPacket(if_index, output, 56, src_mac);
       } else {
-        printf("forward");
+        printf("forward\n");
         fflush(stdout);
         // forward
         // beware of endianness
