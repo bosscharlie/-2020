@@ -102,11 +102,13 @@ int main(int argc, char *argv[]) {
   }
   printf("start\n");
   fflush(stdout);
+  for(int i=0;i<lineartable.size();i++){
+    printf("%x\n",lineartable[i].addr);
+    fflush(stdout);
+  }
   uint64_t last_time = 0;
   while (1) {
     uint64_t time = HAL_GetTicks();
-    std::cout<<time<<std::endl;
-    fflush(stdout);
     // the RFC says 30s interval,
     // but for faster convergence, use 5s here
     if (time > last_time + 5 * 1000) {
