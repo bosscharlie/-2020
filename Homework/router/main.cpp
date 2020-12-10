@@ -109,6 +109,7 @@ int main(int argc, char *argv[]) {
     if (time > last_time + 5 * 1000) {
       // ref. RFC 2453 Section 3.8
       printf("5s Timer\n");
+      fflush(stdout);
       // HINT: print complete routing table to stdout/stderr for debugging
       // TODO: send complete routing table to every interface
       for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
@@ -232,6 +233,8 @@ int main(int argc, char *argv[]) {
 
     if (dst_is_me) {
       // 3a.1
+      printf("dst is me");
+      fflush(stdout);
       RipPacket rip;
       // check and validate
       if (disassemble(packet, res, &rip)) {
@@ -306,6 +309,8 @@ int main(int argc, char *argv[]) {
           if(count!=0)
             HAL_SendIPPacket(if_index, output, rip_len + 20 + 8, src_mac);
         } else {
+          printf("response rip");
+          fflush(stdout);
           // 3a.2 response, ref. RFC 2453 Section 3.9.2
           // TODO: update routing table
           // new metric = ?
@@ -340,6 +345,8 @@ int main(int argc, char *argv[]) {
           }
         }
       } else {
+        printf("not rip packet");
+        fflush(stdout);
         // not a rip packet
         // handle icmp echo request packet
         // TODO: how to determine?
@@ -355,6 +362,8 @@ int main(int argc, char *argv[]) {
           // 4. re-calculate icmp checksum and ip checksum
           // 5. send icmp packet
           if(icmp_header->type==8){
+            printf("icmp");
+            fflush(stdout);
             ip_header=(struct ip *)output;
             icmp_header=(struct icmphdr *)&output[20];
             ip_header->ip_src.s_addr=dst_addr;
@@ -392,6 +401,8 @@ int main(int argc, char *argv[]) {
         }
       }
     } else {
+      printf("dst is not me");
+      fflush(stdout);
       // 3b.1 dst is not me
       // check ttl
       uint8_t ttl = packet[8];
@@ -451,6 +462,8 @@ int main(int argc, char *argv[]) {
         // TODO: send icmp packet
         HAL_SendIPPacket(if_index, output, 56, src_mac);
       } else {
+        printf("forward");
+        fflush(stdout);
         // forward
         // beware of endianness
         uint32_t nexthop, dest_if;
