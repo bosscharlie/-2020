@@ -92,7 +92,7 @@ uint32_t assemble(const RipPacket *rip, uint8_t *buffer) {
     family=(uint8_t)0;
   else if((int)rip->command==2)
     family=(uint8_t)2;
-  for(int i=0;i<rip->numEntries;i++){
+  for(int i=0;i<(int)ntohl(rip->numEntries);i++){
     buffer[4+20*i]=(uint8_t)0;
     buffer[5+20*i]=family;
     buffer[6+20*i]=(uint8_t)0;
@@ -115,5 +115,5 @@ uint32_t assemble(const RipPacket *rip, uint8_t *buffer) {
     buffer[23+20*i]=((uint8_t*)&rip->entries[i].metric)[3];
     len=len+20;
   }
-  return len;
+  return (uint32_t)len;
 }
