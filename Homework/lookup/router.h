@@ -13,5 +13,7 @@ typedef struct {
   uint32_t len;      // 主机字节序，前缀长度
   uint32_t if_index; // 主机字节序，出端口编号
   uint32_t nexthop;  // 网络字节序，下一跳的 IPv4 地址
+  uint32_t metric;
+  uint32_t mask;
   // 为了实现 RIP 协议，需要在这里添加额外的字段
 } RoutingTableEntry;
