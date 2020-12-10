@@ -46,6 +46,15 @@ const in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0203a8c0, 0x0104a8c0, 0x0108a8c0,
 const in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0204a8c0, 0x0205a8c0, 0x010aa8c0,
                                            0x010ba8c0};
 #else
+// 自己调试用，你可以按需进行修改，注意字节序
+// 0: 10.0.0.1
+// 1: 10.0.1.1
+// 2: 10.0.2.1
+// 3: 10.0.3.1
+in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0100000a, 0x0101000a, 0x0102000a,
+                                     0x0103000a};
+#endif
+
 typedef struct finder_t
 {
     finder_t(uint32_t dstaddr,uint32_t dstmask) : addr(dstaddr),mask(dstmask) { } 
@@ -66,14 +75,6 @@ uint32_t masktolen(uint32_t mask){
   }
   return cnt;
 }
-// 自己调试用，你可以按需进行修改，注意字节序
-// 0: 10.0.0.1
-// 1: 10.0.1.1
-// 2: 10.0.2.1
-// 3: 10.0.3.1
-in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0100000a, 0x0101000a, 0x0102000a,
-                                     0x0103000a};
-#endif
 
 int main(int argc, char *argv[]) {
   // 0a.
