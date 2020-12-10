@@ -145,6 +145,57 @@ int main(int argc, char *argv[]) {
           fflush(stdout);
           resp.numEntries=resp.numEntries+htonl(1);
           count++;
+          // send it back
+
+          if(count==25){
+            //(macaddr_t){(uint8_t)1,(uint8_t)0,(uint8_t)94,(uint8_t)0,(uint8_t)0,(uint8_t)9}
+            // fill IP headers
+            struct ip *ip_header = (struct ip *)output;
+            ip_header->ip_hl = htonl(5);
+            ip_header->ip_v = htonl(4);
+            // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17(udp), dst and src
+            ip_header->ip_tos=0;
+            ip_header->ip_id=0;
+            ip_header->ip_off=0;
+            ip_header->ip_ttl=1;
+            ip_header->ip_p=17;
+            ip_header->ip_dst.s_addr=htonl((in_addr_t)((224<<24)+9));
+            ip_header->ip_src.s_addr=htonl(addrs[i]);
+            // fill UDP headers
+            struct udphdr *udpHeader = (struct udphdr *)&output[20];
+            // src port = 520
+            udpHeader->uh_sport = htons(520);
+            // dst port = 520
+            udpHeader->uh_dport = htons(520);
+            // TODO: udp length
+            udpHeader->len = htons((uint16_t)32);
+            // // assemble RIP
+            rip_len = assemble(&resp, &output[20 + 8]);
+
+            // TODO: checksum calculation for ip and udp
+            // if you don't want to calculate udp checksum, set it to zero
+
+            ip_header->ip_sum=0;
+            uint8_t *ippacket=(uint8_t*)ip_header;
+            int ans=0;
+            ans=0;
+            for(int i=0;i<ip_header->ip_len;i=i+2){
+              ans+=(int)(ippacket[i]*256+ippacket[i+1]);
+            }
+            while(ans>65535){
+              int temp=ans/65536; 
+              ans=ans%65536;
+              ans=ans+temp;
+            }
+            ans=(~ans)&65535;
+            ip_header->ip_sum=htons((uint16_t)ans);
+            udpHeader->uh_sum=0;
+            HAL_SendIPPacket(i, output, rip_len + 20 + 8, bmac);
+            count=0;
+            resp.numEntries=htonl(0);
+          }
+        }
+        if(count!=0)
           // fill IP headers
           struct ip *ip_header = (struct ip *)output;
           ip_header->ip_hl = htonl(5);
@@ -166,36 +217,24 @@ int main(int argc, char *argv[]) {
           // TODO: udp length
           udpHeader->len = htons((uint16_t)32);
           // // assemble RIP
+          rip_len = assemble(&resp, &output[20 + 8]);
           // TODO: checksum calculation for ip and udp
           // if you don't want to calculate udp checksum, set it to zero
-
-          // ip_header->ip_sum=0;
-          // uint8_t *ippacket=(uint8_t*)ip_header;
-          // int ans=0;
-          // ans=0;
-          // for(int i=0;i<ip_header->ip_len;i=i+2){
-          //   ans+=(int)(ippacket[i]*256+ippacket[i+1]);
-          // }
-          // while(ans>65535){
-          //   int temp=ans/65536; 
-          //   ans=ans%65536;
-          //   ans=ans+temp;
-          // }
-          // ans=(~ans)&65535;
-          // ip_header->ip_sum=htons((uint16_t)ans);
-          // udpHeader->uh_sum=0;
-
-          // send it back
-
-          // if(count==25){
-          //   //(macaddr_t){(uint8_t)1,(uint8_t)0,(uint8_t)94,(uint8_t)0,(uint8_t)0,(uint8_t)9}
-          //   HAL_SendIPPacket(i, output, rip_len + 20 + 8, bmac);
-          //   count=0;
-          //   resp.numEntries=htonl(0);
-          // }
-        }
-        if(count!=0)
-          rip_len = assemble(&resp, &output[20 + 8]);
+          ip_header->ip_sum=0;
+          uint8_t *ippacket=(uint8_t*)ip_header;
+          int ans=0;
+          ans=0;
+          for(int i=0;i<ip_header->ip_len;i=i+2){
+            ans+=(int)(ippacket[i]*256+ippacket[i+1]);
+          }
+          while(ans>65535){
+            int temp=ans/65536; 
+            ans=ans%65536;
+            ans=ans+temp;
+          }
+          ans=(~ans)&65535;
+          ip_header->ip_sum=htons((uint16_t)ans);
+          udpHeader->uh_sum=0;
           HAL_SendIPPacket(i, output, rip_len + 20 + 8, bmac);
       }
       last_time = time;
