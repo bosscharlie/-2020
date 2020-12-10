@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
             resp.numEntries=htonl(0);
           }
         }
-        if(count!=0)
+        if(count!=0){
           // fill IP headers
           struct ip *ip_header = (struct ip *)output;
           ip_header->ip_hl = htonl(5);
@@ -236,6 +236,7 @@ int main(int argc, char *argv[]) {
           ip_header->ip_sum=htons((uint16_t)ans);
           udpHeader->uh_sum=0;
           HAL_SendIPPacket(i, output, rip_len + 20 + 8, bmac);
+        }
       }
       last_time = time;
     }
