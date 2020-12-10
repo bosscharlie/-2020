@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
           // TODO: udp length
           udpHeader->len = htons((uint16_t)32);
           // // assemble RIP
-          // rip_len = assemble(&resp, &output[20 + 8]);
+          rip_len = assemble(&resp, &output[20 + 8]);
 
           // TODO: checksum calculation for ip and udp
           // if you don't want to calculate udp checksum, set it to zero
