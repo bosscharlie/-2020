@@ -100,7 +100,8 @@ int main(int argc, char *argv[]) {
     };
     update(true, entry);
   }
-
+  printf("start");
+  fflush(stdout);
   uint64_t last_time = 0;
   while (1) {
     uint64_t time = HAL_GetTicks();
