@@ -71,7 +71,7 @@ uint32_t masktolen(uint32_t mask){
   while (mask>0)
   {
     cnt++;
-    mask>>1;
+    mask=mask>>1;
   }
   return cnt;
 }
@@ -373,6 +373,8 @@ int main(int argc, char *argv[]) {
             ip_header->ip_sum=htons((uint16_t)ans);
             HAL_SendIPPacket(if_index, output, rip_len + 20 + 8, src_mac);
           }
+          printf("end dst is me\n");
+          fflush(stdout);
         } else {
           printf("response rip\n");
           fflush(stdout);
@@ -393,23 +395,23 @@ int main(int argc, char *argv[]) {
               insertentry.metric=ntohl(rip.entries[i].metric)+1<(uint32_t)16?rip.entries[i].metric+htonl(1):htonl((uint32_t)16);
               insertentry.nexthop=src_addr;
               insertentry.if_index=if_index;
-              //insertentry.len=masktolen(rip.entries[i].mask+1);
-          //     if(it!=lineartable.end()){
-          //       if(it->nexthop==0){
-          //         continue;
-          //       }else if(it->nexthop==src_addr){
-          //         if(ntohl(rip.entries[i].metric)==(uint32_t)16){ //poison reverse
-          //           update(false,insertentry);
-          //         }
-          //       }else if(ntohl(rip.entries[i].metric)<ntohl(it->metric)){
-          //         it->metric=rip.entries[i].metric+htonl(1);
-          //         it->nexthop=src_addr;
-          //         it->if_index=if_index;
-          //       }
-          //     }else{
-          //       if(ntohl(insertentry.metric)!=16)
-          //         update(true,insertentry);
-          //     }
+              insertentry.len=masktolen(rip.entries[i].mask+1);
+              if(it!=lineartable.end()){
+                if(it->nexthop==0){
+                  continue;
+                }else if(it->nexthop==src_addr){
+                  if(ntohl(rip.entries[i].metric)==(uint32_t)16){ //poison reverse
+                    update(false,insertentry);
+                  }
+                }else if(ntohl(rip.entries[i].metric)<ntohl(it->metric)){
+                  it->metric=rip.entries[i].metric+htonl(1);
+                  it->nexthop=src_addr;
+                  it->if_index=if_index;
+                }
+              }else{
+                if(ntohl(insertentry.metric)!=16)
+                  update(true,insertentry);
+              }
           }
           printf("end response\n");
           fflush(stdout);
@@ -477,6 +479,8 @@ int main(int argc, char *argv[]) {
             HAL_SendIPPacket(if_index, output, 28, src_mac);
           }
         }
+        printf("end not rip packert\n");
+        fflush(stdout);
       }
     } else {
       printf("dst is not me\n");
@@ -539,6 +543,8 @@ int main(int argc, char *argv[]) {
         icmp_header->checksum=htons((uint16_t)ans);
         // TODO: send icmp packet
         HAL_SendIPPacket(if_index, output, 56, src_mac);
+        printf("end ttl\n");
+        fflush(stdout);
       } else {
         printf("forward\n");
         fflush(stdout);
@@ -622,6 +628,8 @@ int main(int argc, char *argv[]) {
           // TODO: send icmp packet
           HAL_SendIPPacket(if_index, output, 56, src_mac);
         }
+        printf("end forward\n");
+        fflush(stdout);
       }
     }
   }
