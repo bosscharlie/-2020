@@ -216,7 +216,7 @@ int main(int argc, char *argv[]) {
           uint8_t *ippacket=(uint8_t*)ip_header;
           int ans=0;
           ans=0;
-          for(int i=0;j<20;j=j+2){
+          for(int j=0;j<20;j=j+2){
             ans+=(int)(ippacket[j]*256+ippacket[j+1]);
           }
           while(ans>65535){
