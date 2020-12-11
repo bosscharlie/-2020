@@ -386,7 +386,8 @@ int main(int argc, char *argv[]) {
           // the difference between exact match and longest prefix match.
           // optional: triggered updates ref. RFC 2453 Section 3.10.1
           for(int i=0;i<rip.numEntries;i++){
-              auto it = std::find_if(lineartable.begin(),lineartable.end(),finder_t(rip.entries[i].addr,rip.entries[i].mask));
+              //auto it = std::find_if(lineartable.begin(),lineartable.end(),finder_t(rip.entries[i].addr,rip.entries[i].mask));
+              auto it=lineartable.begin();
               RoutingTableEntry insertentry;
               insertentry.addr=rip.entries[i].addr;
               insertentry.mask=rip.entries[i].mask;
