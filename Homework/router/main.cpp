@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
         resp.numEntries=0;
         uint32_t rip_len;
         int count=0;
-        for(int j=0;j<lineartable.size();i++){
+        for(int j=0;j<lineartable.size();j++){
           resp.entries[j%25] = {
             .addr=lineartable[j].addr,
             .mask=lineartable[j].mask,
