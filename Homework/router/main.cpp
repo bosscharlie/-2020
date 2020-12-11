@@ -411,6 +411,8 @@ int main(int argc, char *argv[]) {
                   update(true,insertentry);
               }
           }
+          printf("end response\n");
+          fflush(stdout);
         }
       } else {
         printf("not rip packet\n");
