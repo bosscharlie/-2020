@@ -128,12 +128,12 @@ int main(int argc, char *argv[]) {
         resp.numEntries=0;
         uint32_t rip_len;
         int count=0;
-        for(int i=0;i<lineartable.size();i++){
-          resp.entries[i%25] = {
-            .addr=lineartable[i].addr,
-            .mask=lineartable[i].mask,
-            .nexthop=lineartable[i].nexthop,
-            .metric=lineartable[i].metric
+        for(int j=0;j<lineartable.size();i++){
+          resp.entries[j%25] = {
+            .addr=lineartable[j].addr,
+            .mask=lineartable[j].mask,
+            .nexthop=lineartable[j].nexthop,
+            .metric=lineartable[j].metric
           };
           resp.numEntries++;
           count++;
@@ -143,8 +143,8 @@ int main(int argc, char *argv[]) {
             //(macaddr_t){(uint8_t)1,(uint8_t)0,(uint8_t)94,(uint8_t)0,(uint8_t)0,(uint8_t)9}
             // fill IP headers
             struct ip *ip_header = (struct ip *)output;
-            ip_header->ip_hl = htonl(5);
-            ip_header->ip_v = htonl(4);
+            ip_header->ip_hl = 5;
+            ip_header->ip_v = 4;
             // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17(udp), dst and src
             ip_header->ip_tos=0;
             ip_header->ip_id=0;
@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
             ip_header->ip_ttl=1;
             ip_header->ip_p=17;
             ip_header->ip_dst.s_addr=htonl((in_addr_t)((224<<24)+9));
-            ip_header->ip_src.s_addr=htonl(addrs[i]);
+            ip_header->ip_src.s_addr=addrs[i];
             // fill UDP headers
             struct udphdr *udpHeader = (struct udphdr *)&output[20];
             // src port = 520
@@ -171,7 +171,7 @@ int main(int argc, char *argv[]) {
             uint8_t *ippacket=(uint8_t*)ip_header;
             int ans=0;
             ans=0;
-            for(int i=0;i<ip_header->ip_len;i=i+2){
+            for(int i=0;i<20;i=i+2){
               ans+=(int)(ippacket[i]*256+ippacket[i+1]);
             }
             while(ans>65535){
@@ -190,8 +190,8 @@ int main(int argc, char *argv[]) {
         if(count!=0){
           // fill IP headers
           struct ip *ip_header = (struct ip *)output;
-          ip_header->ip_hl = htonl(5);
-          ip_header->ip_v = htonl(4);
+          ip_header->ip_hl = 5;
+          ip_header->ip_v = 4;
           // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17(udp), dst and src
           ip_header->ip_tos=0;
           ip_header->ip_id=0;
@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
           ip_header->ip_ttl=1;
           ip_header->ip_p=17;
           ip_header->ip_dst.s_addr=htonl((in_addr_t)((224<<24)+9));
-          ip_header->ip_src.s_addr=htonl(addrs[i]);
+          ip_header->ip_src.s_addr=addrs[i];
           // fill UDP headers
           struct udphdr *udpHeader = (struct udphdr *)&output[20];
           // src port = 520
@@ -216,7 +216,7 @@ int main(int argc, char *argv[]) {
           uint8_t *ippacket=(uint8_t*)ip_header;
           int ans=0;
           ans=0;
-          for(int i=0;i<ip_header->ip_len;i=i+2){
+          for(int i=0;i<20;i=i+2){
             ans+=(int)(ippacket[i]*256+ippacket[i+1]);
           }
           while(ans>65535){
@@ -235,7 +235,7 @@ int main(int argc, char *argv[]) {
     int mask = (1 << N_IFACE_ON_BOARD) - 1;
     macaddr_t src_mac;
     macaddr_t dst_mac;
-    int if_index;
+    int if_index;  //接收端口号
     res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), src_mac, dst_mac,
                               1000, &if_index);
     if (res == HAL_ERR_EOF) {
@@ -270,7 +270,8 @@ int main(int argc, char *argv[]) {
       }
     }
     // TODO: handle rip multicast address(224.0.0.9)
-
+    if(dst_addr==htonl((in_addr_t)((224<<24)+9)))
+      dst_is_me=true;
     if (dst_is_me) {
       // 3a.1
       printf("dst is me\n");
@@ -291,19 +292,22 @@ int main(int argc, char *argv[]) {
           uint32_t rip_len;
           int count=0;
           for(int i=0;i<lineartable.size();i++){
+            if(lineartable[i].addr==src_addr){
+              lineartable[i].metric=htonl(16);
+            }
             resp.entries[i%25] = {
               .addr=lineartable[i].addr,
               .mask=lineartable[i].mask,
               .nexthop=lineartable[i].nexthop,
-              .metric=(if_index==i)?htonl((uint32_t)16):lineartable[i].metric
+              .metric=lineartable[i].metric
             };
             resp.numEntries++;
             count++;
             // send it back
             if(count==25){
               struct ip *ip_header = (struct ip *)output;
-              ip_header->ip_hl = 0;
-              ip_header->ip_v = htonl(4);
+              ip_header->ip_hl = 5;
+              ip_header->ip_v = 4;
               ip_header->ip_tos=0;
               ip_header->ip_id=0;
               ip_header->ip_off=0;
@@ -321,7 +325,7 @@ int main(int argc, char *argv[]) {
               uint8_t *ippacket=(uint8_t*)ip_header;
               int ans=0;
               ans=0;
-              for(int i=0;i<ip_header->ip_len;i=i+2){
+              for(int i=0;i<20;i=i+2){
                 ans+=(int)(ippacket[i]*256+ippacket[i+1]);
               }
               while(ans>65535){
@@ -338,8 +342,8 @@ int main(int argc, char *argv[]) {
           }
           if(count!=0){
             struct ip *ip_header = (struct ip *)output;
-            ip_header->ip_hl = 0;
-            ip_header->ip_v = htonl(4);
+            ip_header->ip_hl = 5;
+            ip_header->ip_v = 4;
             ip_header->ip_tos=0;
             ip_header->ip_id=0;
             ip_header->ip_off=0;
@@ -357,7 +361,7 @@ int main(int argc, char *argv[]) {
             uint8_t *ippacket=(uint8_t*)ip_header;
             int ans=0;
             ans=0;
-            for(int i=0;i<ip_header->ip_len;i=i+2){
+            for(int i=0;i<20;i=i+2){
               ans+=(int)(ippacket[i]*256+ippacket[i+1]);
             }
             while(ans>65535){
@@ -387,21 +391,24 @@ int main(int argc, char *argv[]) {
               insertentry.addr=rip.entries[i].addr;
               insertentry.mask=rip.entries[i].mask;
               insertentry.metric=ntohl(rip.entries[i].metric)+1<(uint32_t)16?rip.entries[i].metric+htonl(1):htonl((uint32_t)16);
-              insertentry.nexthop=rip.entries[i].nexthop;
+              insertentry.nexthop=src_addr;
               insertentry.if_index=if_index;
-              insertentry.len=masktolen(ntohl(rip.entries[i].mask)+1);
+              insertentry.len=masktolen(rip.entries[i].mask+1);
               if(it!=lineartable.end()){
-                if(it->nexthop==src_addr){
+                if(it->nexthop==0){
+                  continue;
+                }else if(it->nexthop==src_addr){
                   if(ntohl(rip.entries[i].metric)==(uint32_t)16){ //poison reverse
                     update(false,insertentry);
-                  }else if(rip.entries[i].metric<it->metric){
-                    it->metric=rip.entries[i].metric+htonl(1);
-                    it->nexthop=src_addr;
-                    it->if_index=if_index;
                   }
+                }else if(ntohl(rip.entries[i].metric)<ntohl(it->metric)){
+                  it->metric=rip.entries[i].metric+htonl(1);
+                  it->nexthop=src_addr;
+                  it->if_index=if_index;
                 }
               }else{
-                update(true,insertentry);
+                if(ntohl(insertentry.metric)!=16)
+                  update(true,insertentry);
               }
           }
         }
@@ -425,6 +432,7 @@ int main(int argc, char *argv[]) {
           if(icmp_header->type==8){
             printf("icmp\n");
             fflush(stdout);
+            memcpy(output,packet,ntohs(ip_header->ip_len)*sizeof(uint8_t));
             ip_header=(struct ip *)output;
             icmp_header=(struct icmphdr *)&output[20];
             ip_header->ip_src.s_addr=dst_addr;
@@ -435,7 +443,7 @@ int main(int argc, char *argv[]) {
             icmp_header->checksum=0;
             uint8_t *ippacket=(uint8_t*)ip_header;
             int ans=0;
-            for(int i=0;i<ip_header->ip_len;i=i+2){
+            for(int i=0;i<20;i=i+2){
               ans+=(int)(ippacket[i]*256+ippacket[i+1]);
             }
             while(ans>65535){
@@ -447,7 +455,14 @@ int main(int argc, char *argv[]) {
             ip_header->ip_sum=htons((uint16_t)ans);
             uint8_t *icmppacket=(uint8_t*)icmp_header;
             ans=0;
-            for(int i=0;i<8;i=i+2){
+            int icmplen;
+            if(ntohs(ip_header->ip_len)%2==1){
+              output[ntohs(ip_header->ip_len)+1]=0;
+              icmplen=(ntohs)(ip_header->ip_len)+1;
+            }else{
+              icmplen=(ntohs)(ip_header->ip_len);
+            }
+            for(int i=0;i<icmplen;i=i+2){
               ans+=(int)(icmppacket[i]*256+icmppacket[i+1]);
             }
             while(ans>65535){
@@ -471,8 +486,8 @@ int main(int argc, char *argv[]) {
         // send icmp time to live exceeded to src addr
         // fill IP header
         struct ip *ip_header = (struct ip *)output;
-        ip_header->ip_hl = htonl(5);
-        ip_header->ip_v = htonl(4);
+        ip_header->ip_hl = 5;
+        ip_header->ip_v = 4;
         // TODO: set tos = 0, id = 0, off = 0, ttl = 64, p = 1(icmp), src and dst
         ip_header->ip_tos=0;
         ip_header->ip_id=0;
@@ -498,7 +513,7 @@ int main(int argc, char *argv[]) {
         // TODO: calculate icmp checksum and ip checksum
         uint8_t *ippacket=(uint8_t*)ip_header;
         int ans=0;
-        for(int i=0;i<ip_header->ip_len;i=i+2){
+        for(int i=0;i<20;i=i+2){
           ans+=(int)(ippacket[i]*256+ippacket[i+1]);
         }
         while(ans>65535){
@@ -510,7 +525,7 @@ int main(int argc, char *argv[]) {
         ip_header->ip_sum=htons((uint16_t)ans);
         uint8_t *icmppacket=(uint8_t*)icmp_header;
         ans=0;
-        for(int i=0;i<8;i=i+2){
+        for(int i=0;i<36;i=i+2){
           ans+=(int)(icmppacket[i]*256+icmppacket[i+1]);
         }
         while(ans>65535){
@@ -568,7 +583,7 @@ int main(int argc, char *argv[]) {
           // icmp type = Destination Unreachable
           icmp_header->type = ICMP_DEST_UNREACH;
           // TODO: icmp code = Destination Network Unreachable
-          icmp_header->code = ICMP_DEST_UNREACH;
+          icmp_header->code = 0;
           // TODO: fill unused fields with zero
           icmp_header->un.gateway=0;
           icmp_header->un.echo.id=0;
@@ -580,7 +595,7 @@ int main(int argc, char *argv[]) {
           // TODO: calculate icmp checksum and ip checksum
           uint8_t *ippacket=(uint8_t*)ip_header;
           int ans=0;
-          for(int i=0;i<ip_header->ip_len;i=i+2){
+          for(int i=0;i<20;i=i+2){
             ans+=(int)(ippacket[i]*256+ippacket[i+1]);
           }
           while(ans>65535){
@@ -592,7 +607,7 @@ int main(int argc, char *argv[]) {
           ip_header->ip_sum=htons((uint16_t)ans);
           uint8_t *icmppacket=(uint8_t*)icmp_header;
           ans=0;
-          for(int i=0;i<8;i=i+2){
+          for(int i=0;i<36;i=i+2){
             ans+=(int)(icmppacket[i]*256+icmppacket[i+1]);
           }
           while(ans>65535){
