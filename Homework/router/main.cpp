@@ -280,6 +280,8 @@ int main(int argc, char *argv[]) {
       // check and validate
       if (disassemble(packet, res, &rip)) {
         if (rip.command == 1) {
+          printf("dst is me\n");
+          fflush(stdout);
           // 3a.3 request, ref. RFC 2453 Section 3.9.1
           // only need to respond to whole table requests in the lab
 
@@ -373,7 +375,7 @@ int main(int argc, char *argv[]) {
             ip_header->ip_sum=htons((uint16_t)ans);
             HAL_SendIPPacket(if_index, output, rip_len + 20 + 8, src_mac);
           }
-          printf("end dst is me\n");
+          printf("end request\n");
           fflush(stdout);
         } else {
           printf("response rip\n");
