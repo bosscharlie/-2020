@@ -56,9 +56,9 @@ bool disassemble(const uint8_t *packet, uint32_t len, RipPacket *output) {
     uint32_t metric=(((uint32_t)packet[i+16])<<24)+(((uint32_t)packet[i+17])<<16)+(((uint32_t)packet[i+18])<<8)+(((uint32_t)packet[i+19]));
     bool judge=false;
     for(int i=0;i<32;i++){
-      if((((ntohl(output->entries[count].mask)>>i)&1)==0)&&!judge)
+      if(((((output->entries[count].mask)>>i)&1)==0)&&!judge)
         judge=true;
-      else if((((ntohl(output->entries[count].mask)>>i)&1)==1)&&judge)
+      else if(((((output->entries[count].mask)>>i)&1)==1)&&judge)
         return false;
     }
     if((int)metric<1||(int)metric>16)
