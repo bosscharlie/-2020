@@ -100,12 +100,6 @@ int main(int argc, char *argv[]) {
     };
     update(true, entry);
   }
-  printf("start\n");
-  fflush(stdout);
-  for(int i=0;i<lineartable.size();i++){
-    printf("%x\n",lineartable[i].addr);
-    fflush(stdout);
-  }
   uint64_t last_time = 0;
   while (1) {
     uint64_t time = HAL_GetTicks();
@@ -141,8 +135,6 @@ int main(int argc, char *argv[]) {
             .nexthop=lineartable[i].nexthop,
             .metric=lineartable[i].metric
           };
-          printf("%x\n",resp.entries[i%25].addr);
-          fflush(stdout);
           resp.numEntries=resp.numEntries+htonl(1);
           count++;
           // send it back
@@ -240,16 +232,12 @@ int main(int argc, char *argv[]) {
       }
       last_time = time;
     }
-    printf("end timer");
-    fflush(stdout);
     int mask = (1 << N_IFACE_ON_BOARD) - 1;
     macaddr_t src_mac;
     macaddr_t dst_mac;
     int if_index;
     res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), src_mac, dst_mac,
                               1000, &if_index);
-    printf("receive success");
-    fflush(stdout);
     if (res == HAL_ERR_EOF) {
       break;
     } else if (res < 0) {
@@ -311,11 +299,47 @@ int main(int argc, char *argv[]) {
             };
             resp.numEntries=resp.numEntries+htonl(1);
             count++;
-            // fill IP headers
+            // send it back
+            if(count==25){
+              struct ip *ip_header = (struct ip *)output;
+              ip_header->ip_hl = 0;
+              ip_header->ip_v = htonl(4);
+              ip_header->ip_tos=0;
+              ip_header->ip_id=0;
+              ip_header->ip_off=0;
+              ip_header->ip_ttl=1;
+              ip_header->ip_p=17;
+              ip_header->ip_dst.s_addr=src_addr;
+              ip_header->ip_src.s_addr=dst_addr;
+              struct udphdr *udpHeader = (struct udphdr *)&output[20];
+              udpHeader->uh_sport = htons(520);
+              udpHeader->uh_dport = htons(520);
+              udpHeader->len = htons((uint16_t)32);
+              rip_len = assemble(&resp, &output[20 + 8]);
+              udpHeader->uh_sum=0;
+              ip_header->ip_sum=0;
+              uint8_t *ippacket=(uint8_t*)ip_header;
+              int ans=0;
+              ans=0;
+              for(int i=0;i<ip_header->ip_len;i=i+2){
+                ans+=(int)(ippacket[i]*256+ippacket[i+1]);
+              }
+              while(ans>65535){
+                int temp=ans/65536; 
+                ans=ans%65536;
+                ans=ans+temp;
+              }
+              ans=(~ans)&65535;
+              ip_header->ip_sum=htons((uint16_t)ans);
+              HAL_SendIPPacket(if_index, output, rip_len + 20 + 8, src_mac);
+              count=0;
+              resp.numEntries=htonl(0);
+            }
+          }
+          if(count!=0)
             struct ip *ip_header = (struct ip *)output;
             ip_header->ip_hl = 0;
             ip_header->ip_v = htonl(4);
-            // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17(udp), dst and src
             ip_header->ip_tos=0;
             ip_header->ip_id=0;
             ip_header->ip_off=0;
@@ -323,19 +347,11 @@ int main(int argc, char *argv[]) {
             ip_header->ip_p=17;
             ip_header->ip_dst.s_addr=src_addr;
             ip_header->ip_src.s_addr=dst_addr;
-            // fill UDP headers
             struct udphdr *udpHeader = (struct udphdr *)&output[20];
-            // src port = 520
             udpHeader->uh_sport = htons(520);
-            // dst port = 520
             udpHeader->uh_dport = htons(520);
-            // TODO: udp length
             udpHeader->len = htons((uint16_t)32);
-            // assemble RIP
             rip_len = assemble(&resp, &output[20 + 8]);
-
-            // TODO: checksum calculation for ip and udp
-            // if you don't want to calculate udp checksum, set it to zero
             udpHeader->uh_sum=0;
             ip_header->ip_sum=0;
             uint8_t *ippacket=(uint8_t*)ip_header;
@@ -351,14 +367,6 @@ int main(int argc, char *argv[]) {
             }
             ans=(~ans)&65535;
             ip_header->ip_sum=htons((uint16_t)ans);
-            // send it back
-            if(count==25){
-              HAL_SendIPPacket(if_index, output, rip_len + 20 + 8, src_mac);
-              count=0;
-              resp.numEntries=htonl(0);
-            }
-          }
-          if(count!=0)
             HAL_SendIPPacket(if_index, output, rip_len + 20 + 8, src_mac);
         } else {
           printf("response rip\n");
