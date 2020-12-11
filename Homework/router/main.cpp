@@ -393,7 +393,7 @@ int main(int argc, char *argv[]) {
               insertentry.metric=ntohl(rip.entries[i].metric)+1<(uint32_t)16?rip.entries[i].metric+htonl(1):htonl((uint32_t)16);
               insertentry.nexthop=src_addr;
               insertentry.if_index=if_index;
-              insertentry.len=masktolen(rip.entries[i].mask+1);
+              //insertentry.len=masktolen(rip.entries[i].mask+1);
           //     if(it!=lineartable.end()){
           //       if(it->nexthop==0){
           //         continue;
