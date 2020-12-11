@@ -60,7 +60,7 @@ typedef struct finder_t
     finder_t(uint32_t dstaddr,uint32_t dstmask) : addr(dstaddr),mask(dstmask) { } 
     bool operator()(RoutingTableEntry p) 
     { 
-        return (mask==p.mask)&&(addr&mask == p.addr&p.mask); 
+        return (mask==p.mask)&&(addr == p.addr);   //精确查找
     } 
     uint32_t addr;
     uint32_t mask;
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
         .len = 24,                     // host byte order
         .if_index = i,                 // host byte order
         .nexthop = 0,                   // network byte order, means direct
-        .metric = 1,
+        .metric = htonl(1),
         .mask = (1<<24)-1
     };
     update(true, entry);
@@ -160,10 +160,10 @@ int main(int argc, char *argv[]) {
             // dst port = 520
             udpHeader->uh_dport = htons(520);
             // TODO: udp length
-            udpHeader->len = htons((uint16_t)32);
+            
             // // assemble RIP
             rip_len = assemble(&resp, &output[20 + 8]);
-
+            udpHeader->len = htons(8+rip_len);
             // TODO: checksum calculation for ip and udp
             // if you don't want to calculate udp checksum, set it to zero
 
@@ -207,9 +207,10 @@ int main(int argc, char *argv[]) {
           // dst port = 520
           udpHeader->uh_dport = htons(520);
           // TODO: udp length
-          udpHeader->len = htons((uint16_t)32);
+         
           // // assemble RIP
           rip_len = assemble(&resp, &output[20 + 8]);
+          udpHeader->len = htons(8+rip_len);
           // TODO: checksum calculation for ip and udp
           // if you don't want to calculate udp checksum, set it to zero
           ip_header->ip_sum=0;
@@ -280,7 +281,7 @@ int main(int argc, char *argv[]) {
       // check and validate
       if (disassemble(packet, res, &rip)) {
         if (rip.command == 1) {
-          printf("dst is me\n");
+          printf("request\n");
           fflush(stdout);
           // 3a.3 request, ref. RFC 2453 Section 3.9.1
           // only need to respond to whole table requests in the lab
@@ -320,8 +321,8 @@ int main(int argc, char *argv[]) {
               struct udphdr *udpHeader = (struct udphdr *)&output[20];
               udpHeader->uh_sport = htons(520);
               udpHeader->uh_dport = htons(520);
-              udpHeader->len = htons((uint16_t)32);
               rip_len = assemble(&resp, &output[20 + 8]);
+              udpHeader->len = htons(8+rip_len);
               udpHeader->uh_sum=0;
               ip_header->ip_sum=0;
               uint8_t *ippacket=(uint8_t*)ip_header;
@@ -356,8 +357,8 @@ int main(int argc, char *argv[]) {
             struct udphdr *udpHeader = (struct udphdr *)&output[20];
             udpHeader->uh_sport = htons(520);
             udpHeader->uh_dport = htons(520);
-            udpHeader->len = htons((uint16_t)32);
             rip_len = assemble(&resp, &output[20 + 8]);
+            udpHeader->len = htons(8+rip_len);
             udpHeader->uh_sum=0;
             ip_header->ip_sum=0;
             uint8_t *ippacket=(uint8_t*)ip_header;
@@ -397,7 +398,7 @@ int main(int argc, char *argv[]) {
               insertentry.metric=ntohl(rip.entries[i].metric)+1<(uint32_t)16?rip.entries[i].metric+htonl(1):htonl((uint32_t)16);
               insertentry.nexthop=src_addr;
               insertentry.if_index=if_index;
-              insertentry.len=masktolen(rip.entries[i].mask+1);
+              insertentry.len=masktolen(rip.entries[i].mask);
               if(it!=lineartable.end()){
                 if(it->nexthop==0){
                   continue;
