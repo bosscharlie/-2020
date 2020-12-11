@@ -336,7 +336,7 @@ int main(int argc, char *argv[]) {
               resp.numEntries=htonl(0);
             }
           }
-          if(count!=0)
+          if(count!=0){
             struct ip *ip_header = (struct ip *)output;
             ip_header->ip_hl = 0;
             ip_header->ip_v = htonl(4);
@@ -368,6 +368,7 @@ int main(int argc, char *argv[]) {
             ans=(~ans)&65535;
             ip_header->ip_sum=htons((uint16_t)ans);
             HAL_SendIPPacket(if_index, output, rip_len + 20 + 8, src_mac);
+          }
         } else {
           printf("response rip\n");
           fflush(stdout);
