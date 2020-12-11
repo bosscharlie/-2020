@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
         bmac[5]=9;
         RipPacket resp;
         resp.command=2;
-        resp.numEntries=htonl(0);
+        resp.numEntries=0;
         uint32_t rip_len;
         int count=0;
         for(int i=0;i<lineartable.size();i++){
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
             .nexthop=lineartable[i].nexthop,
             .metric=lineartable[i].metric
           };
-          resp.numEntries=resp.numEntries+htonl(1);
+          resp.numEntries++;
           count++;
           // send it back
 
@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
             udpHeader->uh_sum=0;
             HAL_SendIPPacket(i, output, rip_len + 20 + 8, bmac);
             count=0;
-            resp.numEntries=htonl(0);
+            resp.numEntries=0;
           }
         }
         if(count!=0){
@@ -287,7 +287,7 @@ int main(int argc, char *argv[]) {
           // implement split horizon with poisoned reverse
           // ref. RFC 2453 Section 3.4.3
           resp.command=2;
-          resp.numEntries=htonl(0);
+          resp.numEntries=0;
           uint32_t rip_len;
           int count=0;
           for(int i=0;i<lineartable.size();i++){
@@ -297,7 +297,7 @@ int main(int argc, char *argv[]) {
               .nexthop=lineartable[i].nexthop,
               .metric=(if_index==i)?htonl((uint32_t)16):lineartable[i].metric
             };
-            resp.numEntries=resp.numEntries+htonl(1);
+            resp.numEntries++;
             count++;
             // send it back
             if(count==25){
@@ -333,7 +333,7 @@ int main(int argc, char *argv[]) {
               ip_header->ip_sum=htons((uint16_t)ans);
               HAL_SendIPPacket(if_index, output, rip_len + 20 + 8, src_mac);
               count=0;
-              resp.numEntries=htonl(0);
+              resp.numEntries=0;
             }
           }
           if(count!=0){

@@ -46,7 +46,7 @@ bool disassemble(const uint8_t *packet, uint32_t len, RipPacket *output) {
   if(tag!=0)
     return false;
   int riplen=((int)len-32)/20;
-  output->numEntries=htonl((uint32_t)riplen);
+  output->numEntries=(uint32_t)riplen;
   output->command=packet[28];
   int count=0;
   for(int i=32;i<(int)len;i=i+20){
@@ -92,7 +92,7 @@ uint32_t assemble(const RipPacket *rip, uint8_t *buffer) {
     family=(uint8_t)0;
   else if((int)rip->command==2)
     family=(uint8_t)2;
-  for(int i=0;i<(int)ntohl(rip->numEntries);i++){
+  for(int i=0;i<rip->numEntries;i++){
     buffer[4+20*i]=(uint8_t)0;
     buffer[5+20*i]=family;
     buffer[6+20*i]=(uint8_t)0;
