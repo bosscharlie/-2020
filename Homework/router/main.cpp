@@ -171,8 +171,8 @@ int main(int argc, char *argv[]) {
             uint8_t *ippacket=(uint8_t*)ip_header;
             int ans=0;
             ans=0;
-            for(int i=0;i<20;i=i+2){
-              ans+=(int)(ippacket[i]*256+ippacket[i+1]);
+            for(int j=0;j<20;j=j+2){
+              ans+=(int)(ippacket[j]*256+ippacket[j+1]);
             }
             while(ans>65535){
               int temp=ans/65536; 
@@ -216,8 +216,8 @@ int main(int argc, char *argv[]) {
           uint8_t *ippacket=(uint8_t*)ip_header;
           int ans=0;
           ans=0;
-          for(int i=0;i<20;i=i+2){
-            ans+=(int)(ippacket[i]*256+ippacket[i+1]);
+          for(int i=0;j<20;j=j+2){
+            ans+=(int)(ippacket[j]*256+ippacket[j+1]);
           }
           while(ans>65535){
             int temp=ans/65536; 
