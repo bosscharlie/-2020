@@ -66,6 +66,11 @@ typedef struct finder_t
     uint32_t mask;
 }finder_t;
 
+void printtable(){
+  for(int i=0;i<lineartable.size();i++){
+    printf("%x %x %d %x\n",ntohl(lineartable[i].addr),lineartable[i].if_index,ntohl(lineartable[i].metric),ntohl(lineartable[i].nexthop));
+  }
+}
 uint32_t masktolen(uint32_t mask){
   uint32_t cnt=0;
   while (mask>0)
@@ -133,7 +138,8 @@ int main(int argc, char *argv[]) {
             .addr=lineartable[j].addr,
             .mask=lineartable[j].mask,
             .nexthop=lineartable[j].nexthop,
-            .metric=lineartable[j].metric
+            .metric=(i==lineartable[j].if_index&&lineartable[j].nexthop!=0)?htonl(16):lineartable[j].metric
+            //.metric=lineartable[j].metric
           };
           resp.numEntries++;
           count++;
@@ -166,7 +172,7 @@ int main(int argc, char *argv[]) {
             udpHeader->len = htons(8+rip_len);
             // TODO: checksum calculation for ip and udp
             // if you don't want to calculate udp checksum, set it to zero
-
+            ip_header->ip_len=htons((uint16_t)(rip_len+20+8));
             ip_header->ip_sum=0;
             uint8_t *ippacket=(uint8_t*)ip_header;
             int ans=0;
@@ -191,7 +197,7 @@ int main(int argc, char *argv[]) {
           // fill IP headers
           struct ip *ip_header = (struct ip *)output;
           ip_header->ip_hl = 5;
-          ip_header->ip_v = 4;
+          ip_header->ip_v = 4; 
           // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17(udp), dst and src
           ip_header->ip_tos=0;
           ip_header->ip_id=0;
@@ -210,6 +216,7 @@ int main(int argc, char *argv[]) {
          
           // // assemble RIP
           rip_len = assemble(&resp, &output[20 + 8]);
+          ip_header->ip_len=htons((uint16_t)(rip_len+20+8));
           udpHeader->len = htons(8+rip_len);
           // TODO: checksum calculation for ip and udp
           // if you don't want to calculate udp checksum, set it to zero
@@ -231,6 +238,7 @@ int main(int argc, char *argv[]) {
           HAL_SendIPPacket(i, output, rip_len + 20 + 8, bmac);
         }
       }
+      printtable();
       last_time = time;
     }
     int mask = (1 << N_IFACE_ON_BOARD) - 1;
@@ -302,7 +310,7 @@ int main(int argc, char *argv[]) {
               .addr=lineartable[i].addr,
               .mask=lineartable[i].mask,
               .nexthop=lineartable[i].nexthop,
-              .metric=lineartable[i].metric
+              .metric=(lineartable[i].nexthop!=0&&lineartable[i].nexthop==src_addr)?htonl(16):lineartable[i].metric
             };
             resp.numEntries++;
             count++;
@@ -322,14 +330,15 @@ int main(int argc, char *argv[]) {
               udpHeader->uh_sport = htons(520);
               udpHeader->uh_dport = htons(520);
               rip_len = assemble(&resp, &output[20 + 8]);
+              ip_header->ip_len=htons((uint16_t)(rip_len+20+8));
               udpHeader->len = htons(8+rip_len);
               udpHeader->uh_sum=0;
               ip_header->ip_sum=0;
               uint8_t *ippacket=(uint8_t*)ip_header;
               int ans=0;
               ans=0;
-              for(int i=0;i<20;i=i+2){
-                ans+=(int)(ippacket[i]*256+ippacket[i+1]);
+              for(int j=0;j<20;j=j+2){
+                ans+=(int)(ippacket[j]*256+ippacket[j+1]);
               }
               while(ans>65535){
                 int temp=ans/65536; 
@@ -358,6 +367,7 @@ int main(int argc, char *argv[]) {
             udpHeader->uh_sport = htons(520);
             udpHeader->uh_dport = htons(520);
             rip_len = assemble(&resp, &output[20 + 8]);
+            ip_header->ip_len=htons((uint16_t)(rip_len+20+8));
             udpHeader->len = htons(8+rip_len);
             udpHeader->uh_sum=0;
             ip_header->ip_sum=0;
@@ -412,10 +422,11 @@ int main(int argc, char *argv[]) {
                   it->if_index=if_index;
                 }
               }else{
-                if(ntohl(insertentry.metric)!=16)
+                if(ntohl(insertentry.metric)<16)
                   update(true,insertentry);
               }
           }
+          printtable();
           printf("end response\n");
           fflush(stdout);
         }
@@ -443,7 +454,7 @@ int main(int argc, char *argv[]) {
             ip_header=(struct ip *)output;
             icmp_header=(struct icmphdr *)&output[20];
             ip_header->ip_src.s_addr=dst_addr;
-            ip_header->ip_src.s_addr=src_addr;
+            ip_header->ip_dst.s_addr=src_addr;
             icmp_header->type=0;
             ip_header->ip_ttl=(uint8_t)64;
             ip_header->ip_sum=0;
@@ -469,7 +480,7 @@ int main(int argc, char *argv[]) {
             }else{
               icmplen=(ntohs)(ip_header->ip_len);
             }
-            for(int i=0;i<icmplen;i=i+2){
+            for(int i=0;i<icmplen-20;i=i+2){
               ans+=(int)(icmppacket[i]*256+icmppacket[i+1]);
             }
             while(ans>65535){
@@ -479,7 +490,7 @@ int main(int argc, char *argv[]) {
             }
             ans=(~ans)&65535;
             icmp_header->checksum=htons((uint16_t)ans);
-            HAL_SendIPPacket(if_index, output, 28, src_mac);
+            HAL_SendIPPacket(if_index, output, ntohs(ip_header->ip_len), src_mac);
           }
         }
         printf("end not rip packert\n");
