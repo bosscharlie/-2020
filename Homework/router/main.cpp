@@ -112,8 +112,8 @@ int main(int argc, char *argv[]) {
     // but for faster convergence, use 5s here
     if (time > last_time + 5 * 1000) {
       // ref. RFC 2453 Section 3.8
-      printf("5s Timer\n");
-      fflush(stdout);
+      // printf("5s Timer\n");
+      // fflush(stdout);
       // HINT: print complete routing table to stdout/stderr for debugging
       // TODO: send complete routing table to every interface
       for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
@@ -238,7 +238,7 @@ int main(int argc, char *argv[]) {
           HAL_SendIPPacket(i, output, rip_len + 20 + 8, bmac);
         }
       }
-      printtable();
+      //printtable();
       last_time = time;
     }
     int mask = (1 << N_IFACE_ON_BOARD) - 1;
@@ -283,14 +283,14 @@ int main(int argc, char *argv[]) {
       dst_is_me=true;
     if (dst_is_me) {
       // 3a.1
-      printf("dst is me\n");
-      fflush(stdout);
+      // printf("dst is me\n");
+      // fflush(stdout);
       RipPacket rip;
       // check and validate
       if (disassemble(packet, res, &rip)) {
         if (rip.command == 1) {
-          printf("request\n");
-          fflush(stdout);
+          // printf("request\n");
+          // fflush(stdout);
           // 3a.3 request, ref. RFC 2453 Section 3.9.1
           // only need to respond to whole table requests in the lab
 
@@ -386,11 +386,11 @@ int main(int argc, char *argv[]) {
             ip_header->ip_sum=htons((uint16_t)ans);
             HAL_SendIPPacket(if_index, output, rip_len + 20 + 8, src_mac);
           }
-          printf("end request\n");
-          fflush(stdout);
+          // printf("end request\n");
+          // fflush(stdout);
         } else {
-          printf("response rip\n");
-          fflush(stdout);
+          // printf("response rip\n");
+          // fflush(stdout);
           // 3a.2 response, ref. RFC 2453 Section 3.9.2
           // TODO: update routing table
           // new metric = ?
@@ -426,13 +426,13 @@ int main(int argc, char *argv[]) {
                   update(true,insertentry);
               }
           }
-          printtable();
-          printf("end response\n");
-          fflush(stdout);
+          // printtable();
+          // printf("end response\n");
+          // fflush(stdout);
         }
       } else {
-        printf("not rip packet\n");
-        fflush(stdout);
+        // printf("not rip packet\n");
+        // fflush(stdout);
         // not a rip packet
         // handle icmp echo request packet
         // TODO: how to determine?
@@ -448,8 +448,8 @@ int main(int argc, char *argv[]) {
           // 4. re-calculate icmp checksum and ip checksum
           // 5. send icmp packet
           if(icmp_header->type==8){
-            printf("icmp\n");
-            fflush(stdout);
+            // printf("icmp\n");
+            // fflush(stdout);
             memcpy(output,packet,ntohs(ip_header->ip_len)*sizeof(uint8_t));
             ip_header=(struct ip *)output;
             icmp_header=(struct icmphdr *)&output[20];
@@ -493,12 +493,12 @@ int main(int argc, char *argv[]) {
             HAL_SendIPPacket(if_index, output, ntohs(ip_header->ip_len), src_mac);
           }
         }
-        printf("end not rip packert\n");
-        fflush(stdout);
+        // printf("end not rip packert\n");
+        // fflush(stdout);
       }
     } else {
-      printf("dst is not me\n");
-      fflush(stdout);
+      // printf("dst is not me\n");
+      // fflush(stdout);
       // 3b.1 dst is not me
       // check ttl
       uint8_t ttl = packet[8];
@@ -561,11 +561,11 @@ int main(int argc, char *argv[]) {
         icmp_header->checksum=htons((uint16_t)ans);
         // TODO: send icmp packet
         HAL_SendIPPacket(if_index, output, 56, src_mac);
-        printf("end ttl\n");
-        fflush(stdout);
+        // printf("end ttl\n");
+        // fflush(stdout);
       } else {
-        printf("forward\n");
-        fflush(stdout);
+        // printf("forward\n");
+        // fflush(stdout);
         // forward
         // beware of endianness
         uint32_t nexthop, dest_if;
@@ -649,8 +649,8 @@ int main(int argc, char *argv[]) {
           // TODO: send icmp packet
           HAL_SendIPPacket(if_index, output, 56, src_mac);
         }
-        printf("end forward\n");
-        fflush(stdout);
+        // printf("end forward\n");
+        // fflush(stdout);
       }
     }
   }
