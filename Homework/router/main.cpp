@@ -514,7 +514,9 @@ int main(int argc, char *argv[]) {
         ip_header->ip_off=0;
         ip_header->ip_ttl=64;
         ip_header->ip_p=1;
-        ip_header->ip_src.s_addr=dst_addr;
+        ip_header->ip_len=htons(56);
+        //ip_header->ip_src.s_addr=dst_addr;
+        ip_header->ip_src.s_addr=addrs[if_index];
         ip_header->ip_dst.s_addr=src_addr;
         // fill icmp header
         struct icmphdr *icmp_header = (struct icmphdr *)&output[20];
@@ -528,6 +530,8 @@ int main(int argc, char *argv[]) {
         icmp_header->un.echo.sequence=0;
         icmp_header->un.frag.mtu=0;
         icmp_header->un.frag.__glibc_reserved=0;
+        ip_header->ip_sum=0;
+        icmp_header->checksum=0;
         // TODO: append "ip header and first 8 bytes of the original payload"
         memcpy(&output[28],packet,28*sizeof(uint8_t));
         // TODO: calculate icmp checksum and ip checksum
@@ -598,7 +602,8 @@ int main(int argc, char *argv[]) {
           ip_header->ip_off=0;
           ip_header->ip_ttl=64;
           ip_header->ip_p=1;
-          ip_header->ip_src.s_addr=dst_addr;
+          //ip_header->ip_src.s_addr=dst_addr;
+          ip_header->ip_src.s_addr=addrs[if_index];
           ip_header->ip_dst.s_addr=src_addr;
           // fill icmp header
           struct icmphdr *icmp_header = (struct icmphdr *)&output[20];
@@ -615,6 +620,8 @@ int main(int argc, char *argv[]) {
           // TODO: append "ip header and first 8 bytes of the original payload"
           memcpy(&output[28],packet,28*sizeof(uint8_t));
           // TODO: calculate icmp checksum and ip checksum
+          ip_header->ip_sum=0;
+          icmp_header->checksum=0;
           uint8_t *ippacket=(uint8_t*)ip_header;
           int ans=0;
           for(int i=0;i<20;i=i+2){
