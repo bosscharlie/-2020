@@ -49,11 +49,11 @@ bool prefix_query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index) {
   RoutingTableEntry* temp=NULL;
   int templen=0;
   for(int i=0;i<lineartable.size();i++){
-    if(lineartable[i].len==0&&lineartable[i].len>=templen){
+    if(lineartable[i].len==0&&(int)lineartable[i].len>=templen){
       templen=lineartable[i].len;
       temp=&lineartable[i];
     }
-    else if(ntohl(lineartable[i].addr)>>(32-lineartable[i].len)==ntohl(addr)>>(32-lineartable[i].len)&&lineartable[i].len>=templen){
+    else if(ntohl(lineartable[i].addr)>>(32-(int)lineartable[i].len)==ntohl(addr)>>(32-(int)lineartable[i].len)&&(int)lineartable[i].len>=templen){
       templen=lineartable[i].len;
       temp=&lineartable[i];
     }
