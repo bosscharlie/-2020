@@ -73,7 +73,7 @@ void printtable(){
 }
 uint32_t masktolen(uint32_t mask){
   uint32_t cnt=0;
-  while (mask>0)
+  while (mask&1)
   {
     cnt++;
     mask=mask>>1;
