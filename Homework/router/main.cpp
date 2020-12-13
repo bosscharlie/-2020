@@ -403,7 +403,7 @@ int main(int argc, char *argv[]) {
           for(int i=0;i<rip.numEntries;i++){
               auto it = std::find_if(lineartable.begin(),lineartable.end(),finder_t(rip.entries[i].addr,rip.entries[i].mask));
               RoutingTableEntry insertentry;
-              insertentry.addr=rip.entries[i].addr;
+              insertentry.addr=rip.entries[i].addr&rip.entries[i].mask;
               insertentry.mask=rip.entries[i].mask;
               insertentry.metric=ntohl(rip.entries[i].metric)+1<(uint32_t)16?rip.entries[i].metric+htonl(1):htonl((uint32_t)16);
               insertentry.nexthop=src_addr;
