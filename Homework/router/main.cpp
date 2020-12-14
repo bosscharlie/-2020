@@ -279,14 +279,18 @@ int main(int argc, char *argv[]) {
       }
     }
     // TODO: handle rip multicast address(224.0.0.9)
-    if(dst_addr==htonl((in_addr_t)((224<<24)+9)))
+    if(dst_addr==htonl((in_addr_t)((224<<24)+9))){
+      // printf("broadcast from%x\n",ntohl(src_addr));
+      // fflush(stdout);
       dst_is_me=true;
+    }
     if (dst_is_me) {
       // 3a.1
       // printf("dst is me\n");
       // fflush(stdout);
       RipPacket rip;
       // check and validate
+      std::cout<<disassemble(packet,res,&rip)<<std::endl;
       if (disassemble(packet, res, &rip)) {
         if (rip.command == 1) {
           // printf("request\n");
@@ -401,6 +405,7 @@ int main(int argc, char *argv[]) {
           // the difference between exact match and longest prefix match.
           // optional: triggered updates ref. RFC 2453 Section 3.10.1
           for(int i=0;i<rip.numEntries;i++){
+              //printf("insert %x\n",ntohl(rip.entries[i].addr));
               auto it = std::find_if(lineartable.begin(),lineartable.end(),finder_t(rip.entries[i].addr,rip.entries[i].mask));
               RoutingTableEntry insertentry;
               insertentry.addr=rip.entries[i].addr&rip.entries[i].mask;
@@ -422,8 +427,10 @@ int main(int argc, char *argv[]) {
                   it->if_index=if_index;
                 }
               }else{
-                if(ntohl(insertentry.metric)<16)
+                if(ntohl(insertentry.metric)<16){
                   update(true,insertentry);
+                  //printf("finish inserts %x\n",ntohl(rip.entries[i].addr));
+                }
               }
           }
           // printtable();

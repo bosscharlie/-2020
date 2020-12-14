@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
+#include <iostream>
+using namespace std;
 /*
   在头文件 rip.h 中定义了结构体 `RipEntry` 和 `RipPacket` 。
   你需要从 IPv4 包中解析出 RipPacket 结构体，也要从 RipPacket 结构体构造出对应的
@@ -28,23 +30,35 @@
 bool disassemble(const uint8_t *packet, uint32_t len, RipPacket *output) {
   // TODO:
   int totallen=(int)packet[2]*256+(int)packet[3];
-  if(totallen>(int)len)
+  if(totallen>(int)len){
+    cout<<"len"<<endl;
     return false;
+  }
   int command=(int)packet[28];
-  if(command!=1&&command!=2)
+  if(command!=1&&command!=2){
+    cout<<"command"<<endl;
     return false;
+  }
   int version=(int)packet[29];
-  if(version!=2)
+  if(version!=2){
+    cout<<"version"<<endl;
     return false;
+  }
   int zero=(int)packet[30]*256+packet[31];
-  if(zero!=0)
+  if(zero!=0){
+    cout<<"zero"<<endl;
     return false;
+  }
   int family=(int)packet[32]*256+packet[33];
-  if(!((command==1&&family==0)||(command==2&&family==2)))
+  if(!((command==1&&family==0)||(command==2&&family==2))){
+    cout<<"family"<<endl;
     return false;
+  }
   int tag=(int)packet[34]*256+packet[35];
-  if(tag!=0)
+  if(tag!=0){
+    cout<<"tag"<<endl;
     return false;
+  }
   int riplen=((int)len-32)/20;
   output->numEntries=(uint32_t)riplen;
   output->command=packet[28];
@@ -55,14 +69,19 @@ bool disassemble(const uint8_t *packet, uint32_t len, RipPacket *output) {
     output->entries[count].nexthop=htonl((((uint32_t)packet[i+12])<<24)+(((uint32_t)packet[i+13])<<16)+(((uint32_t)packet[i+14])<<8)+(((uint32_t)packet[i+15])));
     uint32_t metric=(((uint32_t)packet[i+16])<<24)+(((uint32_t)packet[i+17])<<16)+(((uint32_t)packet[i+18])<<8)+(((uint32_t)packet[i+19]));
     bool judge=false;
+    printf("%x\n",output->entries[count].mask);
     for(int i=0;i<32;i++){
-      if(((((output->entries[count].mask)>>i)&1)==0)&&!judge)
+      if((((ntohl(output->entries[count].mask)<<i)&1)==0x10000000)&&!judge)
         judge=true;
-      else if(((((output->entries[count].mask)>>i)&1)==1)&&judge)
+      else if((((ntohl(output->entries[count].mask)<<i)&1)==0x10000000)&&judge){
+        cout<<"mask"<<endl;
         return false;
+      }
     }
-    if((int)metric<1||(int)metric>16)
+    if((int)metric<1||(int)metric>16){
+      cout<<"metric"<<endl;
       return false;
+    }
     output->entries[count].metric=htonl(metric);
     count++;
   }
