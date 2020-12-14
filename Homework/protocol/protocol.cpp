@@ -31,32 +31,32 @@ bool disassemble(const uint8_t *packet, uint32_t len, RipPacket *output) {
   // TODO:
   int totallen=(int)packet[2]*256+(int)packet[3];
   if(totallen>(int)len){
-    cout<<"len"<<endl;
+    //cout<<"len"<<endl;
     return false;
   }
   int command=(int)packet[28];
   if(command!=1&&command!=2){
-    cout<<"command"<<endl;
+    //cout<<"command"<<endl;
     return false;
   }
   int version=(int)packet[29];
   if(version!=2){
-    cout<<"version"<<endl;
+    //cout<<"version"<<endl;
     return false;
   }
   int zero=(int)packet[30]*256+packet[31];
   if(zero!=0){
-    cout<<"zero"<<endl;
+    //cout<<"zero"<<endl;
     return false;
   }
   int family=(int)packet[32]*256+packet[33];
   if(!((command==1&&family==0)||(command==2&&family==2))){
-    cout<<"family"<<endl;
+    //cout<<"family"<<endl;
     return false;
   }
   int tag=(int)packet[34]*256+packet[35];
   if(tag!=0){
-    cout<<"tag"<<endl;
+    //cout<<"tag"<<endl;
     return false;
   }
   int riplen=((int)len-32)/20;
@@ -69,17 +69,25 @@ bool disassemble(const uint8_t *packet, uint32_t len, RipPacket *output) {
     output->entries[count].nexthop=htonl((((uint32_t)packet[i+12])<<24)+(((uint32_t)packet[i+13])<<16)+(((uint32_t)packet[i+14])<<8)+(((uint32_t)packet[i+15])));
     uint32_t metric=(((uint32_t)packet[i+16])<<24)+(((uint32_t)packet[i+17])<<16)+(((uint32_t)packet[i+18])<<8)+(((uint32_t)packet[i+19]));
     bool judge=false;
-    printf("%x\n",output->entries[count].mask);
+    //printf("%x\n",output->entries[count].mask);
+    // for(int i=0;i<32;i++){
+    //   if((((ntohl(output->entries[count].mask)<<i)&1)==0x10000000)&&!judge)
+    //     judge=true;
+    //   else if((((ntohl(output->entries[count].mask)<<i)&1)==0x10000000)&&judge){
+    //     //cout<<"mask"<<endl;
+    //     return false;
+    //   }
+    // }
     for(int i=0;i<32;i++){
-      if((((ntohl(output->entries[count].mask)<<i)&1)==0x10000000)&&!judge)
+      if((((ntohl(output->entries[count].mask)<<i)&0x80000000)==0)&&!judge)
         judge=true;
-      else if((((ntohl(output->entries[count].mask)<<i)&1)==0x10000000)&&judge){
-        cout<<"mask"<<endl;
+      else if((((ntohl(output->entries[count].mask)<<i)&0x80000000)==0x80000000)&&judge){
+        //cout<<"mask"<<endl;
         return false;
       }
     }
     if((int)metric<1||(int)metric>16){
-      cout<<"metric"<<endl;
+      //cout<<"metric"<<endl;
       return false;
     }
     output->entries[count].metric=htonl(metric);

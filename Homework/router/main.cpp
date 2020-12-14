@@ -290,7 +290,7 @@ int main(int argc, char *argv[]) {
       // fflush(stdout);
       RipPacket rip;
       // check and validate
-      std::cout<<disassemble(packet,res,&rip)<<std::endl;
+      //std::cout<<disassemble(packet,res,&rip)<<std::endl;
       if (disassemble(packet, res, &rip)) {
         if (rip.command == 1) {
           // printf("request\n");
