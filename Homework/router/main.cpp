@@ -621,7 +621,7 @@ int main(int argc, char *argv[]) {
           memcpy(&output[28],packet,28*sizeof(uint8_t));
           // TODO: calculate icmp checksum and ip checksum
           ip_header->ip_sum=0;
-          ip_header->ip_len=ntohl(56);
+          ip_header->ip_len=ntohs(56);
           icmp_header->checksum=0;
           uint8_t *ippacket=(uint8_t*)ip_header;
           int ans=0;
